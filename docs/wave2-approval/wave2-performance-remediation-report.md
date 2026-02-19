@@ -23,6 +23,8 @@
 | burst | 17.98 | 16.08 | -1.90 | -10.57 | True |
 
 ## 판정
+- 판정식: `delta_pct = ((after_p95_ms - before_p95_ms) / before_p95_ms) * 100`
+- 통과 기준: `max(delta_pct across profiles) <= 10`
 - 최대 P95 변화율: 0.57% (peak)
 - 게이트 기준: +10% 이내
 - 최종 상태: pass
