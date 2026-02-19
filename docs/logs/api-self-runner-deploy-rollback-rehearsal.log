@@ -1,0 +1,25 @@
+﻿# API Self-Runner Deploy/Rehearsal Log
+
+- SubmissionId: `0c3f2c5689a94ba1b7f9ce6650a53b28`
+- PlanId: `a74a37ef-c39c-40b5-bb7d-7f1cad2cdf28`
+- GeneratedAt: `2026-02-19T18:00:00+09:00`
+
+## Local Validation Commands
+1. `dotnet restore samples/dotnet/HbWork.RunnerSample/HbWork.RunnerSample.sln --configfile nuget.config`
+2. `dotnet build samples/dotnet/HbWork.RunnerSample/HbWork.RunnerSample.sln --no-restore`
+3. `dotnet test samples/dotnet/HbWork.RunnerSample/HbWork.RunnerSample.sln --no-build`
+4. `pytest tests/compatibility -q`
+
+## Remote Rehearsal Commands
+1. `gh workflow run api-self-runner-deploy-governance.yml -f rehearsal_mode=success -f self_runner_available=false`
+2. `gh workflow run api-self-runner-deploy-governance.yml -f rehearsal_mode=block -f self_runner_available=false`
+3. `gh workflow run api-self-runner-deploy-governance.yml -f rehearsal_mode=recover -f self_runner_available=false`
+
+## Remote Rehearsal Run URLs
+- success: `TBD`
+- block: `TBD`
+- recover: `TBD`
+
+## Notes
+- Nexus source policy: `nexus-internal`만 사용하도록 워크플로에서 강제(`nuget.config` + source clear)
+- 복원 단계에서 Nexus endpoint 접근 불가 시 warning 발생 가능(로그 참고)
