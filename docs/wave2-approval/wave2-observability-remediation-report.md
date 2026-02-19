@@ -45,9 +45,9 @@
 - 동일 산출물 `events` 배열에 경고/치명/복구 순서 기록
 
 ### 워크플로 실행 증적
-- 성공 run URL: `TBD`
-- 차단 run URL: `TBD`
-- 차단 step 링크: `TBD`
+- 성공 run URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22175929960`
+- 차단 run URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22175929862`
+- 차단 step 링크: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22175929862/job/64124508309` (`Run retryCount remediation gate`)
 
 ## 4) 이슈 및 대응
 - 이슈: 기존 관측성 게이트가 필드 누락을 명시적으로 차단하지 못해 누락률 1.8% 발생
