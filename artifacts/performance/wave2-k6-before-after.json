@@ -1,0 +1,47 @@
+﻿{
+    "submission_id":  "86bee238725f481b91be2ad7da2d017a",
+    "plan_id":  "f2339519-481a-4773-af40-a94265f4cb8b",
+    "generated_at":  "2026-02-19T09:32:17Z",
+    "method":  "tools/perf/messaging_load_test.py -\u003e k6 before/after schema conversion",
+    "assumptions":  {
+                        "profiles":  "normal|peak|burst",
+                        "dataset":  "script synthetic payload (1KB/2KB)",
+                        "repetitions":  "2 reruns under same profile set",
+                        "before_reference":  "rerun#1 snapshot",
+                        "after_reference":  "rerun#2 snapshot"
+                    },
+    "comparison":  [
+                       {
+                           "profile":  "normal",
+                           "before_p95_ms":  14.37,
+                           "after_p95_ms":  13.86,
+                           "delta_ms":  -0.51,
+                           "delta_pct":  -3.55,
+                           "threshold_pct":  10,
+                           "within_threshold":  true
+                       },
+                       {
+                           "profile":  "peak",
+                           "before_p95_ms":  14.11,
+                           "after_p95_ms":  14.19,
+                           "delta_ms":  0.08,
+                           "delta_pct":  0.57,
+                           "threshold_pct":  10,
+                           "within_threshold":  true
+                       },
+                       {
+                           "profile":  "burst",
+                           "before_p95_ms":  17.98,
+                           "after_p95_ms":  16.08,
+                           "delta_ms":  -1.90,
+                           "delta_pct":  -10.57,
+                           "threshold_pct":  10,
+                           "within_threshold":  true
+                       }
+                   ],
+    "summary":  {
+                    "p95_gate_pct":  10,
+                    "max_delta_pct":  0.57,
+                    "status":  "pass"
+                }
+}

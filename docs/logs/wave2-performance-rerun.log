@@ -1,0 +1,13 @@
+﻿[wave2-performance-rerun] generated=2026-02-19 18:33:36 +09:00
+repo=D:\HBWork\Works\b9cd3a9f-5c93-42af-b44d-8255a413c028
+command_1=python tools/perf/messaging_load_test.py # rerun#1(before)
+command_2=python tools/perf/messaging_load_test.py # rerun#2(after)
+assumptions.profile_set=normal|peak|burst
+assumptions.dataset=synthetic payload (1KB/2KB) from script
+assumptions.repetitions=2
+--- comparison ---
+profile=normal, before_p95_ms=14.37, after_p95_ms=13.86, delta_pct=-3.55, within_threshold=True
+profile=peak, before_p95_ms=14.11, after_p95_ms=14.19, delta_pct=0.57, within_threshold=True
+profile=burst, before_p95_ms=17.98, after_p95_ms=16.08, delta_pct=-10.57, within_threshold=True
+summary.max_delta_pct=0.57
+summary.status=pass
