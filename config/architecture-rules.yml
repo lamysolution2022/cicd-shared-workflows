@@ -1,0 +1,4 @@
+﻿layers:
+  domain: []
+  application: ["domain"]
+  infrastructure: ["application", "domain"]

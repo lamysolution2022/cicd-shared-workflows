@@ -1,0 +1,12 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderCreated",
+  "type": "object",
+  "required": ["eventId", "orderId", "occurredAt"],
+  "properties": {
+    "eventId": {"type": "string"},
+    "orderId": {"type": "string"},
+    "occurredAt": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": false
+}
