@@ -1,0 +1,14 @@
+﻿{
+  "title": "Messaging Operations Dashboard",
+  "version": 1,
+  "datasources": ["prometheus", "elasticsearch", "rabbitmq_exporter"],
+  "filters": ["environment", "service", "topic", "tenant"],
+  "panels": [
+    {"id": "latency", "name": "E2E Latency p50/p95/p99", "query": "histogram_quantile(...)"},
+    {"id": "throughput", "name": "Success/Failure Throughput", "query": "rate(processed_total[5m])"},
+    {"id": "retry", "name": "Retry Rate", "query": "rate(retry_total[5m]) / rate(processed_total[5m])"},
+    {"id": "dlq", "name": "DLQ Depth", "query": "rabbitmq_queue_messages{queue=~'.*dlq.*'}"},
+    {"id": "consumer_lag", "name": "Consumer Lag", "query": "consumer_lag"},
+    {"id": "alert_timeline", "name": "Alert Timeline", "query": "alert_state_transitions"}
+  ]
+}

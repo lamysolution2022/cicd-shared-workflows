@@ -1,0 +1,66 @@
+{
+  "submission_id": "3246e459144f4c81b910a8c9bfbc5c26",
+  "plan_id": "408c46dd-86d6-4207-81a7-3b8130b3eda8",
+  "result": "pass",
+  "events": [
+    {
+      "time": "2026-02-19T09:00:00+00:00",
+      "scenario": "R1",
+      "event": "warning_triggered",
+      "metric": "latency_p95_ms",
+      "value": 1890
+    },
+    {
+      "time": "2026-02-19T09:05:00+00:00",
+      "scenario": "R1",
+      "event": "critical_triggered",
+      "metric": "latency_p95_ms",
+      "value": 2620
+    },
+    {
+      "time": "2026-02-19T09:15:00+00:00",
+      "scenario": "R1",
+      "event": "escalation",
+      "target": "sre_lead"
+    },
+    {
+      "time": "2026-02-19T09:22:00+00:00",
+      "scenario": "R1",
+      "event": "recovered",
+      "metric": "latency_p95_ms",
+      "value": 1700
+    },
+    {
+      "time": "2026-02-19T09:30:00+00:00",
+      "scenario": "R3",
+      "event": "warning_triggered",
+      "metric": "dlq_depth",
+      "value": 35
+    },
+    {
+      "time": "2026-02-19T09:36:00+00:00",
+      "scenario": "R3",
+      "event": "critical_triggered",
+      "metric": "dlq_depth",
+      "value": 92
+    },
+    {
+      "time": "2026-02-19T09:44:00+00:00",
+      "scenario": "R3",
+      "event": "escalation",
+      "target": "incident_commander"
+    },
+    {
+      "time": "2026-02-19T09:55:00+00:00",
+      "scenario": "R3",
+      "event": "recovered",
+      "metric": "dlq_depth",
+      "value": 18
+    }
+  ],
+  "checks": {
+    "alert_trigger": true,
+    "alert_clear": true,
+    "escalation": true
+  }
+}

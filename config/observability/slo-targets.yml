@@ -1,0 +1,28 @@
+﻿service_tiers:
+  tier1:
+    latency_p95_ms:
+      slo: 2000
+      warning: 1800
+      critical: 2500
+    failure_rate_pct:
+      slo: 0.5
+      warning: 0.3
+      critical: 0.8
+    dlq_depth:
+      slo: 50
+      warning: 30
+      critical: 80
+    retry_rate_pct:
+      slo: 3
+      warning: 2
+      critical: 4
+  tier2:
+    latency_p95_ms:
+      slo: 5000
+      warning: 4500
+      critical: 6000
+  tier3:
+    latency_p95_ms:
+      slo: 12000
+      warning: 10000
+      critical: 15000

@@ -1,0 +1,21 @@
+﻿alerts:
+  - id: MSG_LATENCY_WARNING
+    severity: warning
+    expr: latency_p95_ms > threshold_warning for 5m
+    channel: slack:#ops-warning
+  - id: MSG_LATENCY_CRITICAL
+    severity: critical
+    expr: latency_p95_ms > threshold_critical for 1m
+    channel: pagerduty+slack:#ops-critical
+  - id: MSG_DLQ_CRITICAL
+    severity: critical
+    expr: dlq_depth > threshold_critical for 3m
+    channel: pagerduty+slack:#ops-critical
+escalation:
+  - when: critical_10m
+    to: sre_lead
+  - when: critical_20m
+    to: incident_commander
+silence:
+  - maintenance_window_approved
+  - rollout_window_max_30m
