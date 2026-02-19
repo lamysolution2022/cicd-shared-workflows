@@ -1,0 +1,46 @@
+﻿{
+  "submission_id": "86bee238725f481b91be2ad7da2d017a",
+  "plan_id": "f2339519-481a-4773-af40-a94265f4cb8b",
+  "generated_at": "2026-02-19T09:18:30Z",
+  "window": "2026-02-19T09:00:00Z~2026-02-19T09:30:00Z",
+  "gate_validation": {
+    "warning_present": true,
+    "critical_present": true,
+    "recovered_present": true,
+    "escalation_present": true,
+    "silence_policy_valid": true
+  },
+  "events": [
+    {
+      "time": "2026-02-19T09:00:00Z",
+      "severity": "warning",
+      "rule": "MSG_DLQ_WARNING",
+      "value": 34,
+      "threshold": 30
+    },
+    {
+      "time": "2026-02-19T09:06:00Z",
+      "severity": "critical",
+      "rule": "MSG_DLQ_CRITICAL",
+      "value": 91,
+      "threshold": 80
+    },
+    {
+      "time": "2026-02-19T09:14:00Z",
+      "severity": "escalation",
+      "target": "sre_lead"
+    },
+    {
+      "time": "2026-02-19T09:23:00Z",
+      "severity": "recovered",
+      "rule": "MSG_DLQ_CRITICAL",
+      "value": 19,
+      "clear_condition": "10분 연속 정상"
+    }
+  ],
+  "evidence_paths": {
+    "event_log": "artifacts/observability/wave2-gate-validation-events-2026-02-19.json",
+    "panel": "artifacts/observability/screenshots/panel-dlq.svg",
+    "timeline": "artifacts/observability/screenshots/alert-timeline.svg"
+  }
+}
