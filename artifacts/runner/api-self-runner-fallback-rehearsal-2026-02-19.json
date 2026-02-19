@@ -1,0 +1,17 @@
+﻿{
+  "submission_id": "0c3f2c5689a94ba1b7f9ce6650a53b28",
+  "plan_id": "a74a37ef-c39c-40b5-bb7d-7f1cad2cdf28",
+  "generated_at": "2026-02-19T09:55:50Z",
+  "primary_runner": "windows-self-runner",
+  "fallback_runner": "windows-latest",
+  "rehearsal_mode": "success",
+  "status": "completed",
+  "evidence": {
+    "workflow": ".github/workflows/api-self-runner-deploy-governance.yml",
+    "success_run_url": "https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176929546",
+    "blocked_run_url": "https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176929577",
+    "blocked_step_job_url": "https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176929577/job/64127890587",
+    "blocked_step_name": "Block by quality profile rehearsal",
+    "fallback_job_url": "https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176929546/job/64127913936"
+  }
+}

@@ -19,12 +19,12 @@
 
 ## 3) 통합 게이트
 1. 계약 게이트: `tests/architecture`, `tests/compatibility`
-2. 성능 게이트: `tools/perf/performance_regression_gate.py`
+2. 성능 게이트: 워크플로 인라인 검증 로직(`messaging-load-test-results` vs `messaging-capacity-thresholds`)
 3. 관측성 게이트: `tools/observability/retrycount_guard.py`
 4. 릴리스 거버넌스 게이트: `tools/release/release_governance_gate.py`
 
 ## 4) 차단 정책
-- `quality_profile=fail` 시 `Block by quality profile rehearsal` step에서 강제 차단
+- `rehearsal_mode=block` 시 `Block by quality profile rehearsal` step에서 강제 차단
 - 차단 코드: `97`
 
 ## 5) 운영 원칙

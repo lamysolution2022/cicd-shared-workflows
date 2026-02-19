@@ -11,9 +11,9 @@
 - 리허설 로그: `artifacts/runner/api-self-runner-fallback-rehearsal-2026-02-19.json`
 
 ## 2) 검증 근거
-- 성공 run URL: `TBD`
-- 차단 run URL: `TBD`
-- 차단 step 링크: `TBD`
+- 성공 run URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176929546`
+- 차단 run URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176929577`
+- 차단 step 링크: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176929577/job/64127890587` (`Block by quality profile rehearsal`)
 
 ## 3) 검증 요약
 - 최소권한/비밀 마스킹 적용
