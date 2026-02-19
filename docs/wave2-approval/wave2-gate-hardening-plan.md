@@ -6,7 +6,9 @@
 - 작성자: Platform Engineer (CI/CD Owner)
 
 ## 1) 보정 배경
-- Wave1에서는 quality_profile fail 시 차단 동작은 확인되었으나, 운영 임계조건(지표 기반)과 정적 정책(노트/태그/체크리스트) 결합 규칙 강화 필요
+- Architect 판정에서 관측성 조건부 Fail 확인: `retryCount` 누락률 1.8%
+- 기존 게이트는 이벤트 상태 흐름 중심이며 필수 필드 누락 차단 규칙이 약함
+- 따라서 필수 필드 강제 주입 + 누락 탐지 규칙을 게이트에 결합
 
 ## 2) 보정 규칙(안)
 ### R1. 필수 게이트 결합 차단
@@ -19,17 +21,33 @@
 - 조건: 최근 30분 창에서 critical 이벤트 1회 이상 + recovered 미확인 시 차단
 - 데이터 소스: `artifacts/observability/wave2-gate-validation-events-2026-02-19.json`
 
+### R2-1. retryCount 필수 필드 강제 규칙
+- 조건: 관측성 이벤트(`warning/critical/recovered`)의 `retryCount` 필드 누락률 > 0%면 차단
+- 산출 근거: `artifacts/observability/wave2-retrycount-validation-2026-02-19.json`
+- 판정 식:
+  - `missing_rate_pct = (missing / total) * 100`
+  - 기준: `missing_rate_pct == 0.0`
+
 ### R3. 무음 정책 보호 규칙
 - 조건: 무음 윈도우가 승인 메타데이터 없이 적용된 경우 차단
 
 ### R4. 에스컬레이션 미이행 차단
 - 조건: critical 10분 지속 시 escalation 이벤트 누락 시 차단
 
+### R5. 로그 파이프라인 누락 탐지 규칙
+- 조건: 수집 파이프라인에서 필수 필드 누락 감지 시 `MSG_RETRYCOUNT_MISSING` 이벤트 생성
+- 동작:
+  1. 누락 탐지 시 경고 이벤트 즉시 발행
+  2. 5분 내 미복구 시 치명 이벤트 승격
+  3. 필드 정상화 시 복구 이벤트 발행
+- 검증 데이터: `warning -> critical -> recovered` 1사이클 이상 존재해야 함
+
 ## 3) 릴리스 보고 형식 강화
 - 필수 포함:
   - 성공/차단 run URL 각 1개
   - 차단 step 링크
   - warning/critical/recovered 이벤트 경로
+  - retryCount 누락률 산출 근거(보정 전/후)
   - 무음/에스컬레이션 적용 근거
 
 ## 4) 적용 순서
@@ -45,6 +63,7 @@
 1. 이벤트 상관분석 키(배포ID/서비스ID) 추가
 2. 임계값을 시간대/트래픽 구간별 동적화
 3. 게이트 차단 사유 자동 티켓 발행
+4. retryCount 외 필수 필드(`tenantId`, `traceId`) 동일 규칙 확장
 
 ## 7) 운영 원칙
 - Coordination 단일 채널

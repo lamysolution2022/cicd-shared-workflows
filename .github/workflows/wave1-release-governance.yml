@@ -11,6 +11,14 @@ on:
         options:
           - pass
           - fail
+      observability_profile:
+        description: pass/fail (retryCount remediation gate rehearsal)
+        required: true
+        default: pass
+        type: choice
+        options:
+          - pass
+          - fail
   pull_request:
     branches: [ main ]
   push:
@@ -61,9 +69,21 @@ jobs:
             python tools/release/release_governance_gate.py --quality-profile pass --release-tag "v1.0.0" --release-note "docs/release-note-draft.md"
           fi
 
+      - name: Run retryCount remediation gate
+        env:
+          OBS_PROFILE: ${{ github.event.inputs.observability_profile || 'pass' }}
+        run: |
+          if [ "$OBS_PROFILE" = "fail" ]; then
+            python tools/observability/retrycount_guard.py --quality-profile fail --output "artifacts/observability/wave2-retrycount-validation-2026-02-19.json"
+          else
+            python tools/observability/retrycount_guard.py --quality-profile pass --output "artifacts/observability/wave2-retrycount-validation-2026-02-19.json"
+          fi
+
       - name: Upload wave1 gate evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: wave1-governance-evidence
-          path: artifacts/release-governance-check.json
+          path: |
+            artifacts/release-governance-check.json
+            artifacts/observability/wave2-retrycount-validation-2026-02-19.json
