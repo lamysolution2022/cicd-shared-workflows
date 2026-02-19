@@ -186,8 +186,8 @@ jobs:
           }
           if ($LASTEXITCODE -ne 0) { Write-Error 'failed to configure nexus source'; exit 41 }
 
-          $sources = dotnet nuget list source
-          if ($sources -notmatch 'nexus-internal') { Write-Error 'nexus source not found'; exit 42 }
+          $sourcesText = (dotnet nuget list source | Out-String)
+          if (-not ($sourcesText -match 'nexus-internal')) { Write-Error 'nexus source not found'; exit 42 }
 
       - name: Deploy API with custom action
         uses: ./.github/actions/deploy-api-server
@@ -247,8 +247,8 @@ jobs:
           }
           if ($LASTEXITCODE -ne 0) { Write-Error 'failed to configure nexus source'; exit 41 }
 
-          $sources = dotnet nuget list source
-          if ($sources -notmatch 'nexus-internal') { Write-Error 'nexus source not found'; exit 42 }
+          $sourcesText = (dotnet nuget list source | Out-String)
+          if (-not ($sourcesText -match 'nexus-internal')) { Write-Error 'nexus source not found'; exit 42 }
 
       - name: Deploy API with custom action (fallback rehearsal)
         id: deploy
