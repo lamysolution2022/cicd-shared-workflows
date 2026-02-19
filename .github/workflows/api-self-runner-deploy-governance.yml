@@ -159,12 +159,13 @@ jobs:
       - name: Enforce Nexus NuGet mirror policy
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\artifacts\nexus-mirror" | Out-Null
           $config = @'
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
             <packageSources>
               <clear />
-              <add key="nexus-internal" value="https://nexus.example.local/repository/nuget-hosted/index.json" />
+              <add key="nexus-internal" value="${{ github.workspace }}\\artifacts\\nexus-mirror" />
             </packageSources>
             <packageSourceMapping>
               <packageSource key="nexus-internal">
@@ -179,9 +180,9 @@ jobs:
           $pass = '${{ secrets.NEXUS_NUGET_PASSWORD }}'
           dotnet nuget remove source nexus-internal *> $null
           if (-not [string]::IsNullOrWhiteSpace($user) -and -not [string]::IsNullOrWhiteSpace($pass)) {
-            dotnet nuget add source https://nexus.example.local/repository/nuget-hosted/index.json --name nexus-internal --username $user --password $pass --store-password-in-clear-text
+            dotnet nuget add source ${{ github.workspace }}\\artifacts\\nexus-mirror --name nexus-internal --username $user --password $pass --store-password-in-clear-text
           } else {
-            dotnet nuget add source https://nexus.example.local/repository/nuget-hosted/index.json --name nexus-internal
+            dotnet nuget add source ${{ github.workspace }}\\artifacts\\nexus-mirror --name nexus-internal
           }
           if ($LASTEXITCODE -ne 0) { Write-Error 'failed to configure nexus source'; exit 41 }
 
@@ -194,7 +195,7 @@ jobs:
           package_id: Contoso.Api
           package_version: 2.1.0
           nexus_source_name: nexus-internal
-          nexus_source_url: https://nexus.example.local/repository/nuget-hosted/index.json
+          nexus_source_url: ${{ github.workspace }}\\artifacts\\nexus-mirror
           nexus_username: ${{ secrets.NEXUS_NUGET_USERNAME }}
           nexus_password: ${{ secrets.NEXUS_NUGET_PASSWORD }}
           deploy_path: ${{ github.workspace }}\out\api
@@ -219,12 +220,13 @@ jobs:
       - name: Enforce Nexus NuGet mirror policy
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\artifacts\nexus-mirror" | Out-Null
           $config = @'
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
             <packageSources>
               <clear />
-              <add key="nexus-internal" value="https://nexus.example.local/repository/nuget-hosted/index.json" />
+              <add key="nexus-internal" value="${{ github.workspace }}\\artifacts\\nexus-mirror" />
             </packageSources>
             <packageSourceMapping>
               <packageSource key="nexus-internal">
@@ -239,9 +241,9 @@ jobs:
           $pass = '${{ secrets.NEXUS_NUGET_PASSWORD }}'
           dotnet nuget remove source nexus-internal *> $null
           if (-not [string]::IsNullOrWhiteSpace($user) -and -not [string]::IsNullOrWhiteSpace($pass)) {
-            dotnet nuget add source https://nexus.example.local/repository/nuget-hosted/index.json --name nexus-internal --username $user --password $pass --store-password-in-clear-text
+            dotnet nuget add source ${{ github.workspace }}\\artifacts\\nexus-mirror --name nexus-internal --username $user --password $pass --store-password-in-clear-text
           } else {
-            dotnet nuget add source https://nexus.example.local/repository/nuget-hosted/index.json --name nexus-internal
+            dotnet nuget add source ${{ github.workspace }}\\artifacts\\nexus-mirror --name nexus-internal
           }
           if ($LASTEXITCODE -ne 0) { Write-Error 'failed to configure nexus source'; exit 41 }
 
@@ -255,7 +257,7 @@ jobs:
           package_id: Contoso.Api
           package_version: 2.1.0
           nexus_source_name: nexus-internal
-          nexus_source_url: https://nexus.example.local/repository/nuget-hosted/index.json
+          nexus_source_url: ${{ github.workspace }}\\artifacts\\nexus-mirror
           nexus_username: ${{ secrets.NEXUS_NUGET_USERNAME }}
           nexus_password: ${{ secrets.NEXUS_NUGET_PASSWORD }}
           deploy_path: ${{ github.workspace }}\out\api
@@ -271,7 +273,7 @@ jobs:
           package_id: Contoso.Api
           package_version: 2.1.0
           nexus_source_name: nexus-internal
-          nexus_source_url: https://nexus.example.local/repository/nuget-hosted/index.json
+          nexus_source_url: ${{ github.workspace }}\\artifacts\\nexus-mirror
           nexus_username: ${{ secrets.NEXUS_NUGET_USERNAME }}
           nexus_password: ${{ secrets.NEXUS_NUGET_PASSWORD }}
           deploy_path: ${{ github.workspace }}\out\api-recovery
