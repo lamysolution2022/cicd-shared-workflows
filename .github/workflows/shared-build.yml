@@ -1,0 +1,54 @@
+﻿name: Shared Build Template
+
+on:
+  workflow_call:
+    inputs:
+      language:
+        required: true
+        type: string
+      build_command:
+        required: true
+        type: string
+    outputs:
+      artifact_name:
+        description: Build artifact name
+        value: ${{ jobs.build.outputs.artifact_name }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact_name: ${{ steps.meta.outputs.artifact_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: ${{ inputs.language == 'node' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        if: ${{ inputs.language == 'java' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build
+        run: ${{ inputs.build_command }}
+
+      - name: Set artifact metadata
+        id: meta
+        run: echo "artifact_name=build-${{ github.run_id }}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.artifact_name }}
+          path: |
+            dist/**
+            build/**
+            target/**
+          if-no-files-found: warn

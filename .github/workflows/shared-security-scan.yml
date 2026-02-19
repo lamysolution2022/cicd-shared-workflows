@@ -1,0 +1,30 @@
+﻿name: Shared Security Scan Template
+
+on:
+  workflow_call:
+    inputs:
+      dependency_scan_command:
+        required: true
+        type: string
+      sast_command:
+        required: true
+        type: string
+      secret_scan_command:
+        required: true
+        type: string
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency scan
+        run: ${{ inputs.dependency_scan_command }}
+
+      - name: SAST scan
+        run: ${{ inputs.sast_command }}
+
+      - name: Secret scan
+        run: ${{ inputs.secret_scan_command }}

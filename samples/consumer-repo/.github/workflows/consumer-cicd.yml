@@ -1,0 +1,35 @@
+﻿name: Consumer CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: org/cicd-shared-workflows/.github/workflows/shared-build.yml@v1
+    with:
+      language: node
+      build_command: npm ci && npm run build
+
+  test:
+    needs: build
+    uses: org/cicd-shared-workflows/.github/workflows/shared-test.yml@v1
+    with:
+      test_command: npm test
+
+  security:
+    needs: test
+    uses: org/cicd-shared-workflows/.github/workflows/shared-security-scan.yml@v1
+    with:
+      dependency_scan_command: npm audit --audit-level=high
+      sast_command: npm run lint
+      secret_scan_command: echo "secret scan placeholder"
+
+  deploy:
+    needs: security
+    uses: org/cicd-shared-workflows/.github/workflows/shared-deploy.yml@v1
+    with:
+      environment: production
+      deploy_command: ./scripts/deploy.sh
+      rollback_command: ./scripts/rollback.sh

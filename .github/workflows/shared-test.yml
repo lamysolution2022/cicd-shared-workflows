@@ -1,0 +1,18 @@
+﻿name: Shared Test Template
+
+on:
+  workflow_call:
+    inputs:
+      test_command:
+        required: true
+        type: string
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: ${{ inputs.test_command }}
