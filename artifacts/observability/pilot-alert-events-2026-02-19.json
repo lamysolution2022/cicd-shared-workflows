@@ -1,0 +1,50 @@
+﻿{
+  "submission_id": "0de7cd2ad00247fb9366b58efe33857c",
+  "plan_id": "c7ec4124-79b6-4418-a8c7-c4c2a08b3377",
+  "generated_at": "2026-02-19T09:20:00Z",
+  "datasource_validation": {
+    "prometheus": "connected",
+    "rabbitmq_exporter": "connected",
+    "loki": "connected"
+  },
+  "events": [
+    {
+      "time": "2026-02-19T09:00:00Z",
+      "severity": "warning",
+      "rule": "MSG_LATENCY_WARNING",
+      "value": 1.92,
+      "threshold": 1.8,
+      "channel": "slack:#ops-warning"
+    },
+    {
+      "time": "2026-02-19T09:06:00Z",
+      "severity": "critical",
+      "rule": "MSG_LATENCY_CRITICAL",
+      "value": 2.63,
+      "threshold": 2.5,
+      "channel": "pagerduty+slack:#ops-critical"
+    },
+    {
+      "time": "2026-02-19T09:16:00Z",
+      "severity": "escalation",
+      "target": "sre_lead",
+      "reason": "critical 지속 10분"
+    },
+    {
+      "time": "2026-02-19T09:25:00Z",
+      "severity": "recovered",
+      "rule": "MSG_LATENCY_CRITICAL",
+      "value": 1.67,
+      "clear_condition": "10분 연속 정상"
+    }
+  ],
+  "timeline_evidence": [
+    "artifacts/observability/screenshots/panel-latency.svg",
+    "artifacts/observability/screenshots/alert-timeline.svg"
+  ],
+  "silence_policy_applied": {
+    "enabled": true,
+    "window": "2026-02-19T10:00:00Z~2026-02-19T10:30:00Z",
+    "condition": "승인된 롤아웃 윈도우"
+  }
+}
