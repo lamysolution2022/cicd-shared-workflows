@@ -1,0 +1,13 @@
+﻿{
+  "submission_id": "8729c454979a476893707d5ab5b11572",
+  "plan_id": "02716e20-3c29-4973-b8f3-889e1b3573f0",
+  "generated_at": "2026-02-19T09:45:00Z",
+  "primary_runner": "windows-self-runner",
+  "fallback_runner": "windows-latest",
+  "fallback_reason": "self-runner outage rehearsal",
+  "status": "prepared",
+  "evidence": {
+    "workflow": ".github/workflows/wave2-custom-action-runner-governance.yml",
+    "log_artifact": "artifacts/runner/self-runner-fallback-rehearsal-2026-02-19.json"
+  }
+}

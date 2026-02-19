@@ -1,0 +1,102 @@
+﻿name: Wave2 Custom Action Runner Governance
+
+on:
+  workflow_dispatch:
+    inputs:
+      quality_profile:
+        description: pass/fail
+        required: true
+        default: pass
+        type: choice
+        options:
+          - pass
+          - fail
+      self_runner_available:
+        description: true=Windows self-runner 사용, false=hosted fallback 리허설
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  governance-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Block on governance violation
+        env:
+          QUALITY_PROFILE: ${{ github.event.inputs.quality_profile }}
+        run: |
+          echo "quality_profile=$QUALITY_PROFILE"
+          if [ "$QUALITY_PROFILE" = "fail" ]; then
+            echo "blocked: governance policy violation"
+            exit 90
+          fi
+
+  api-deploy-self-runner:
+    if: ${{ github.event.inputs.self_runner_available == 'true' }}
+    needs: governance-gate
+    runs-on: [self-hosted, windows, api-server]
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via custom action (Windows self-runner)
+        uses: ./.github/actions/deploy-api-server
+        with:
+          package_id: Contoso.Api
+          package_version: 1.2.0
+          nexus_source_name: nexus-internal
+          nexus_source_url: https://nexus.example.local/repository/nuget-hosted/index.json
+          deploy_path: ${{ github.workspace }}\out\api
+          runner_mode: self-hosted-windows
+
+  api-deploy-hosted-fallback:
+    if: ${{ github.event.inputs.self_runner_available != 'true' }}
+    needs: governance-gate
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via custom action (hosted fallback rehearsal)
+        id: deploy
+        uses: ./.github/actions/deploy-api-server
+        with:
+          package_id: Contoso.Api
+          package_version: 1.2.0
+          nexus_source_name: nexus-internal
+          nexus_source_url: https://nexus.example.local/repository/nuget-hosted/index.json
+          deploy_path: ${{ github.workspace }}\out\api
+          runner_mode: hosted-fallback
+
+      - name: Write self-runner fallback rehearsal log
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path 'artifacts/runner' | Out-Null
+          $payload = @{
+            submission_id = '8729c454979a476893707d5ab5b11572'
+            plan_id = '02716e20-3c29-4973-b8f3-889e1b3573f0'
+            generated_at = (Get-Date).ToUniversalTime().ToString('o')
+            primary_runner = 'windows-self-runner'
+            fallback_runner = 'windows-latest'
+            fallback_reason = 'self-runner unavailable rehearsal'
+            deploy_status = '${{ steps.deploy.outputs.deploy_status }}'
+            exit_code = '${{ steps.deploy.outputs.exit_code }}'
+            run_url = ('https://github.com/{0}/{1}/actions/runs/{2}' -f '${{ github.repository_owner }}', '${{ github.event.repository.name }}', '${{ github.run_id }}')
+          } | ConvertTo-Json -Depth 5
+          Set-Content -Path 'artifacts/runner/self-runner-fallback-rehearsal-2026-02-19.json' -Value $payload -Encoding utf8
+
+      - name: Upload fallback rehearsal artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave2-runner-fallback-evidence
+          path: artifacts/runner/self-runner-fallback-rehearsal-2026-02-19.json

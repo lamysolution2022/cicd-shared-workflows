@@ -1,0 +1,97 @@
+﻿name: Deploy API Server (Nexus NuGet)
+description: 배포용 커스텀 액션. Nexus NuGet 패키지를 확인하고 API 서버 배포를 수행한다.
+inputs:
+  package_id:
+    description: NuGet package id
+    required: true
+  package_version:
+    description: NuGet package version
+    required: true
+  nexus_source_name:
+    description: NuGet source name
+    required: false
+    default: nexus-internal
+  nexus_source_url:
+    description: Nexus NuGet v3 feed URL
+    required: true
+  nexus_username:
+    description: Nexus username
+    required: false
+    default: ''
+  nexus_password:
+    description: Nexus password/token
+    required: false
+    default: ''
+  deploy_path:
+    description: Deployment output path
+    required: true
+  runner_mode:
+    description: self-hosted-windows or hosted-fallback
+    required: false
+    default: self-hosted-windows
+  simulate_fail_code:
+    description: 0이면 성공, 0이 아니면 해당 코드로 실패 종료
+    required: false
+    default: '0'
+outputs:
+  deploy_status:
+    description: deployed or blocked
+    value: ${{ steps.deploy.outputs.deploy_status }}
+  exit_code:
+    description: action exit code
+    value: ${{ steps.deploy.outputs.exit_code }}
+runs:
+  using: composite
+  steps:
+    - name: Validate custom action inputs
+      id: validate
+      shell: pwsh
+      run: |
+        if ([string]::IsNullOrWhiteSpace('${{ inputs.package_id }}')) { Write-Error 'package_id is required'; exit 10 }
+        if ([string]::IsNullOrWhiteSpace('${{ inputs.package_version }}')) { Write-Error 'package_version is required'; exit 10 }
+        if ([string]::IsNullOrWhiteSpace('${{ inputs.nexus_source_url }}')) { Write-Error 'nexus_source_url is required'; exit 10 }
+        if ([string]::IsNullOrWhiteSpace('${{ inputs.deploy_path }}')) { Write-Error 'deploy_path is required'; exit 10 }
+
+    - name: Configure Nexus NuGet source
+      id: nuget
+      shell: pwsh
+      run: |
+        $sourceName = '${{ inputs.nexus_source_name }}'
+        $sourceUrl = '${{ inputs.nexus_source_url }}'
+        $user = '${{ inputs.nexus_username }}'
+        $pass = '${{ inputs.nexus_password }}'
+
+        dotnet nuget remove source $sourceName *> $null
+        if (-not [string]::IsNullOrWhiteSpace($user) -and -not [string]::IsNullOrWhiteSpace($pass)) {
+          dotnet nuget add source $sourceUrl --name $sourceName --username $user --password $pass --store-password-in-clear-text
+          if ($LASTEXITCODE -ne 0) { Write-Error 'failed to add authenticated Nexus source'; exit 11 }
+        } else {
+          dotnet nuget add source $sourceUrl --name $sourceName
+          if ($LASTEXITCODE -ne 0) { Write-Error 'failed to add Nexus source'; exit 11 }
+        }
+
+    - name: Deploy API package
+      id: deploy
+      shell: pwsh
+      run: |
+        $failCode = [int]'${{ inputs.simulate_fail_code }}'
+        if ($failCode -ne 0) {
+          "deploy_status=blocked" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "exit_code=$failCode" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Error "forced failure for rehearsal. code=$failCode"
+          exit $failCode
+        }
+
+        $deployPath = '${{ inputs.deploy_path }}'
+        New-Item -ItemType Directory -Force -Path $deployPath | Out-Null
+        $meta = @{
+          packageId = '${{ inputs.package_id }}'
+          packageVersion = '${{ inputs.package_version }}'
+          source = '${{ inputs.nexus_source_url }}'
+          runnerMode = '${{ inputs.runner_mode }}'
+          deployedAt = (Get-Date).ToString('o')
+        } | ConvertTo-Json -Depth 4
+        Set-Content -Path (Join-Path $deployPath 'deployment-metadata.json') -Value $meta -Encoding utf8
+
+        "deploy_status=deployed" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        "exit_code=0" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
