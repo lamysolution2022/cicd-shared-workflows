@@ -12,9 +12,9 @@
 - fallback 리허설 로그: `artifacts/runner/self-runner-fallback-rehearsal-2026-02-19.json`
 
 ## 2) 워크플로 검증 근거
-- 성공 run URL: `TBD`
-- 차단 run URL: `TBD`
-- 차단 step 링크: `TBD`
+- 성공 run URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176622474`
+- 차단 run URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176622776`
+- 차단 step 링크: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176622776/job/64126838654` (`Block on governance violation`)
 
 ## 3) 구현 준수 사항
 - 배포 구현: GitHub 커스텀 액션 사용

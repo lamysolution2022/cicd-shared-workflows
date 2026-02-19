@@ -1,13 +1,17 @@
 ﻿{
   "submission_id": "8729c454979a476893707d5ab5b11572",
   "plan_id": "02716e20-3c29-4973-b8f3-889e1b3573f0",
-  "generated_at": "2026-02-19T09:45:00Z",
+  "generated_at": "2026-02-19T09:46:30Z",
   "primary_runner": "windows-self-runner",
   "fallback_runner": "windows-latest",
   "fallback_reason": "self-runner outage rehearsal",
-  "status": "prepared",
+  "status": "completed",
   "evidence": {
     "workflow": ".github/workflows/wave2-custom-action-runner-governance.yml",
+    "success_run_url": "https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176622474",
+    "blocked_run_url": "https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176622776",
+    "blocked_step_job_url": "https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176622776/job/64126838654",
+    "blocked_step_name": "Block on governance violation",
     "log_artifact": "artifacts/runner/self-runner-fallback-rehearsal-2026-02-19.json"
   }
 }
