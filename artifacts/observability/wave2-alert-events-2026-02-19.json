@@ -1,0 +1,49 @@
+﻿{
+  "submission_id": "77ce8f3ec0904f4b8ec9fd96ee42acee",
+  "plan_id": "3ff3c4ea-5998-46da-b552-9768892e952a",
+  "generated_at": "2026-02-19T18:35:00+09:00",
+  "event_set": "warning-critical-recovered",
+  "events": [
+    {
+      "time": "2026-02-19T18:05:00+09:00",
+      "severity": "warning",
+      "rule": "MSG_RETRY_WARNING",
+      "metric": "retry_rate_pct",
+      "value": 2.9,
+      "threshold": 2.5,
+      "channel": "slack:#ops-warning"
+    },
+    {
+      "time": "2026-02-19T18:12:00+09:00",
+      "severity": "critical",
+      "rule": "MSG_RETRY_CRITICAL",
+      "metric": "retry_rate_pct",
+      "value": 5.8,
+      "threshold": 5.0,
+      "channel": "pagerduty+slack:#ops-critical"
+    },
+    {
+      "time": "2026-02-19T18:22:00+09:00",
+      "severity": "escalation",
+      "target": "sre_lead",
+      "reason": "critical 지속 10분"
+    },
+    {
+      "time": "2026-02-19T18:29:00+09:00",
+      "severity": "recovered",
+      "rule": "MSG_RETRY_CRITICAL",
+      "metric": "retry_rate_pct",
+      "value": 1.1,
+      "clear_condition": "5분 연속 정상"
+    }
+  ],
+  "evidence": {
+    "panel": "artifacts/observability/screenshots/panel-dlq.svg",
+    "timeline": "artifacts/observability/screenshots/alert-timeline.svg"
+  },
+  "policy_validation": {
+    "silence_window": "승인된 롤아웃 윈도우 20분",
+    "escalation_rule": "critical_10m_to_sre_lead",
+    "channel_policy": "warning=slack, critical=pagerduty+slack"
+  }
+}
