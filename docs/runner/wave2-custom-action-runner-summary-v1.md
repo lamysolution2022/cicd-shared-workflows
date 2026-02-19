@@ -20,3 +20,11 @@
 - 배포 구현: GitHub 커스텀 액션 사용
 - API 서버 배포 기본 러너: Windows self-runner
 - 공용 패키지 소스: 사내 Nexus NuGet
+
+## 4) 최종 상태
+- 상태: `APPROVAL 가능` (PM/Architect 완료 회신 기준)
+- 최종 제출 산출물 경로:
+  - `docs/runner/wave2-custom-action-runner-summary-v1.md`
+  - `docs/runner/wave2-runner-strategy-and-constraints-v1.md`
+  - `docs/runner/wave2-custom-action-spec-v1.md`
+  - `artifacts/runner/self-runner-fallback-rehearsal-2026-02-19.json`
