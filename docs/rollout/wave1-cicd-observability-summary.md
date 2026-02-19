@@ -17,9 +17,9 @@
 - `docs/rollout/wave1-cicd-observability-summary.md`
 
 ## 3) 검증 근거
-- 성공 run URL: (실행 후 기입)
-- 차단 run URL: (실행 후 기입)
-- 차단 step 근거 링크: (실행 후 기입)
+- 성공 run URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22175620268`
+- 차단 run URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22175623175`
+- 차단 step 근거 링크: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22175623175/job/64123481171` (`Run wave1 governance gate` 실패)
 - 이벤트 로그/패널 증적 경로 명시
 
 ## 4) 잔여 리스크
