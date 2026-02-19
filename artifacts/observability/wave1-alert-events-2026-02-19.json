@@ -1,0 +1,48 @@
+﻿{
+  "submission_id": "8ea579e98944477c81894b9f62af5ccc",
+  "plan_id": "943dd012-d8a6-41f0-ab03-0930d7124f43",
+  "generated_at": "2026-02-19T09:15:00Z",
+  "event_set": "warning-critical-recovered",
+  "events": [
+    {
+      "time": "2026-02-19T09:00:00Z",
+      "severity": "warning",
+      "rule": "MSG_DLQ_WARNING",
+      "metric": "dlq_depth",
+      "value": 34,
+      "threshold": 30,
+      "channel": "slack:#ops-warning"
+    },
+    {
+      "time": "2026-02-19T09:06:00Z",
+      "severity": "critical",
+      "rule": "MSG_DLQ_CRITICAL",
+      "metric": "dlq_depth",
+      "value": 91,
+      "threshold": 80,
+      "channel": "pagerduty+slack:#ops-critical"
+    },
+    {
+      "time": "2026-02-19T09:14:00Z",
+      "severity": "escalation",
+      "target": "sre_lead",
+      "reason": "critical 지속 10분"
+    },
+    {
+      "time": "2026-02-19T09:23:00Z",
+      "severity": "recovered",
+      "rule": "MSG_DLQ_CRITICAL",
+      "metric": "dlq_depth",
+      "value": 19,
+      "clear_condition": "10분 연속 정상"
+    }
+  ],
+  "evidence": {
+    "panel": "artifacts/observability/screenshots/panel-dlq.svg",
+    "timeline": "artifacts/observability/screenshots/alert-timeline.svg"
+  },
+  "policy_validation": {
+    "silence_window": "approved rollout 30m",
+    "escalation_rule": "critical_10m_to_sre_lead"
+  }
+}

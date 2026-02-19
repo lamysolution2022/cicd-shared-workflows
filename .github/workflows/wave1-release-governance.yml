@@ -1,0 +1,69 @@
+﻿name: Wave1 Release Governance
+
+on:
+  workflow_dispatch:
+    inputs:
+      quality_profile:
+        description: pass/fail
+        required: true
+        default: pass
+        type: choice
+        options:
+          - pass
+          - fail
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  wave1-contract-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest jsonschema pyyaml
+
+      - name: Reverse dependency gate
+        run: pytest tests/architecture -q
+
+      - name: Message compatibility gate
+        run: pytest tests/compatibility -q
+
+  wave1-release-governance-gate:
+    runs-on: ubuntu-latest
+    needs: wave1-contract-gate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Run wave1 governance gate
+        env:
+          QUALITY_PROFILE: ${{ github.event.inputs.quality_profile || 'pass' }}
+        run: |
+          if [ "$QUALITY_PROFILE" = "fail" ]; then
+            python tools/release/release_governance_gate.py --quality-profile fail --release-tag "v1.0.0" --release-note "docs/release-note-draft.md"
+          else
+            python tools/release/release_governance_gate.py --quality-profile pass --release-tag "v1.0.0" --release-note "docs/release-note-draft.md"
+          fi
+
+      - name: Upload wave1 gate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave1-governance-evidence
+          path: artifacts/release-governance-check.json
