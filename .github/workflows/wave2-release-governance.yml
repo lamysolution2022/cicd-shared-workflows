@@ -79,7 +79,7 @@ jobs:
           import sys
 
           path = "artifacts/observability/wave2-alert-events-2026-02-19.json"
-          with open(path, "r", encoding="utf-8") as f:
+          with open(path, "r", encoding="utf-8-sig") as f:
             payload = json.load(f)
 
           severities = [e.get("severity") for e in payload.get("events", [])]
