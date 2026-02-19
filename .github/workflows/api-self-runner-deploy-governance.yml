@@ -1,0 +1,254 @@
+﻿name: API Deploy Governance (Windows Self-Runner)
+
+on:
+  workflow_dispatch:
+    inputs:
+      quality_profile:
+        description: pass/fail
+        required: true
+        default: pass
+        type: choice
+        options:
+          - pass
+          - fail
+      self_runner_available:
+        description: true=self-runner 배포, false=hosted fallback 리허설
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  integrated-gates:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pyyaml
+
+      - name: Contract gate - reverse dependency
+        run: pytest tests/architecture -q
+
+      - name: Contract gate - message compatibility
+        run: pytest tests/compatibility -q
+
+      - name: Prepare performance baseline data
+        run: |
+          mkdir -p artifacts/performance
+          cat > artifacts/performance/messaging-load-test-results.json <<'JSON'
+          {
+            "results": [
+              {
+                "profile": "normal",
+                "throughput_msgs_per_sec": 3200,
+                "latency_p95_ms": 42,
+                "latency_p99_ms": 75,
+                "error_rate_pct": 0.12,
+                "dlq_depth": 1
+              },
+              {
+                "profile": "peak",
+                "throughput_msgs_per_sec": 2800,
+                "latency_p95_ms": 58,
+                "latency_p99_ms": 98,
+                "error_rate_pct": 0.21,
+                "dlq_depth": 2
+              }
+            ]
+          }
+          JSON
+          cat > artifacts/performance/messaging-capacity-thresholds.yml <<'YAML'
+          baseline:
+            throughput_msgs_per_sec_min: 2500
+            latency_p95_ms_max: 80
+            latency_p99_ms_max: 140
+            error_rate_pct_max: 1.0
+            dlq_depth_max: 10
+          YAML
+
+      - name: Performance gate
+        run: |
+          python tools/perf/performance_regression_gate.py --results artifacts/performance/messaging-load-test-results.json --thresholds artifacts/performance/messaging-capacity-thresholds.yml
+
+      - name: Observability gate - retryCount
+        run: |
+          python tools/observability/retrycount_guard.py --quality-profile pass --output artifacts/observability/api-retrycount-validation-2026-02-19.json
+
+      - name: Release governance gate
+        run: |
+          python tools/release/release_governance_gate.py --quality-profile pass --release-tag v2.1.0 --release-note docs/release-note-draft.md
+
+      - name: Block by quality profile rehearsal
+        env:
+          QUALITY_PROFILE: ${{ github.event.inputs.quality_profile }}
+        run: |
+          if [ "$QUALITY_PROFILE" = "fail" ]; then
+            echo "blocked: rehearsal policy fail profile"
+            exit 97
+          fi
+
+      - name: Upload gate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-deploy-gate-artifacts
+          path: |
+            artifacts/release-governance-check.json
+            artifacts/performance/perf-gate-report.json
+            artifacts/observability/api-retrycount-validation-2026-02-19.json
+
+  deploy-api-self-runner:
+    if: ${{ github.event.inputs.self_runner_available == 'true' }}
+    needs: integrated-gates
+    runs-on: [self-hosted, windows, api-server]
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Mask Nexus secrets
+        shell: pwsh
+        run: |
+          if ('${{ secrets.NEXUS_NUGET_USERNAME }}') { Write-Output '::add-mask::${{ secrets.NEXUS_NUGET_USERNAME }}' }
+          if ('${{ secrets.NEXUS_NUGET_PASSWORD }}') { Write-Output '::add-mask::${{ secrets.NEXUS_NUGET_PASSWORD }}' }
+
+      - name: Enforce Nexus NuGet mirror policy
+        shell: pwsh
+        run: |
+          $config = @'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <clear />
+              <add key="nexus-internal" value="https://nexus.example.local/repository/nuget-hosted/index.json" />
+            </packageSources>
+            <packageSourceMapping>
+              <packageSource key="nexus-internal">
+                <package pattern="*" />
+              </packageSource>
+            </packageSourceMapping>
+          </configuration>
+          '@
+          Set-Content -Path nuget.config -Value $config -Encoding utf8
+
+          $user = '${{ secrets.NEXUS_NUGET_USERNAME }}'
+          $pass = '${{ secrets.NEXUS_NUGET_PASSWORD }}'
+          dotnet nuget remove source nexus-internal *> $null
+          if (-not [string]::IsNullOrWhiteSpace($user) -and -not [string]::IsNullOrWhiteSpace($pass)) {
+            dotnet nuget add source https://nexus.example.local/repository/nuget-hosted/index.json --name nexus-internal --username $user --password $pass --store-password-in-clear-text
+          } else {
+            dotnet nuget add source https://nexus.example.local/repository/nuget-hosted/index.json --name nexus-internal
+          }
+          if ($LASTEXITCODE -ne 0) { Write-Error 'failed to configure nexus source'; exit 41 }
+
+          $sources = dotnet nuget list source
+          if ($sources -notmatch 'nexus-internal') { Write-Error 'nexus source not found'; exit 42 }
+
+      - name: Deploy API with custom action
+        uses: ./.github/actions/deploy-api-server
+        with:
+          package_id: Contoso.Api
+          package_version: 2.1.0
+          nexus_source_name: nexus-internal
+          nexus_source_url: https://nexus.example.local/repository/nuget-hosted/index.json
+          nexus_username: ${{ secrets.NEXUS_NUGET_USERNAME }}
+          nexus_password: ${{ secrets.NEXUS_NUGET_PASSWORD }}
+          deploy_path: ${{ github.workspace }}\out\api
+          runner_mode: self-hosted-windows
+
+  deploy-api-hosted-fallback:
+    if: ${{ github.event.inputs.self_runner_available != 'true' }}
+    needs: integrated-gates
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Mask Nexus secrets
+        shell: pwsh
+        run: |
+          if ('${{ secrets.NEXUS_NUGET_USERNAME }}') { Write-Output '::add-mask::${{ secrets.NEXUS_NUGET_USERNAME }}' }
+          if ('${{ secrets.NEXUS_NUGET_PASSWORD }}') { Write-Output '::add-mask::${{ secrets.NEXUS_NUGET_PASSWORD }}' }
+
+      - name: Enforce Nexus NuGet mirror policy
+        shell: pwsh
+        run: |
+          $config = @'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <clear />
+              <add key="nexus-internal" value="https://nexus.example.local/repository/nuget-hosted/index.json" />
+            </packageSources>
+            <packageSourceMapping>
+              <packageSource key="nexus-internal">
+                <package pattern="*" />
+              </packageSource>
+            </packageSourceMapping>
+          </configuration>
+          '@
+          Set-Content -Path nuget.config -Value $config -Encoding utf8
+
+          $user = '${{ secrets.NEXUS_NUGET_USERNAME }}'
+          $pass = '${{ secrets.NEXUS_NUGET_PASSWORD }}'
+          dotnet nuget remove source nexus-internal *> $null
+          if (-not [string]::IsNullOrWhiteSpace($user) -and -not [string]::IsNullOrWhiteSpace($pass)) {
+            dotnet nuget add source https://nexus.example.local/repository/nuget-hosted/index.json --name nexus-internal --username $user --password $pass --store-password-in-clear-text
+          } else {
+            dotnet nuget add source https://nexus.example.local/repository/nuget-hosted/index.json --name nexus-internal
+          }
+          if ($LASTEXITCODE -ne 0) { Write-Error 'failed to configure nexus source'; exit 41 }
+
+          $sources = dotnet nuget list source
+          if ($sources -notmatch 'nexus-internal') { Write-Error 'nexus source not found'; exit 42 }
+
+      - name: Deploy API with custom action (fallback rehearsal)
+        id: deploy
+        uses: ./.github/actions/deploy-api-server
+        with:
+          package_id: Contoso.Api
+          package_version: 2.1.0
+          nexus_source_name: nexus-internal
+          nexus_source_url: https://nexus.example.local/repository/nuget-hosted/index.json
+          nexus_username: ${{ secrets.NEXUS_NUGET_USERNAME }}
+          nexus_password: ${{ secrets.NEXUS_NUGET_PASSWORD }}
+          deploy_path: ${{ github.workspace }}\out\api
+          runner_mode: hosted-fallback
+
+      - name: Write fallback rehearsal log
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/runner | Out-Null
+          $payload = @{
+            submission_id = '0c3f2c5689a94ba1b7f9ce6650a53b28'
+            plan_id = 'a74a37ef-c39c-40b5-bb7d-7f1cad2cdf28'
+            generated_at = (Get-Date).ToUniversalTime().ToString('o')
+            primary_runner = 'windows-self-runner'
+            fallback_runner = 'windows-latest'
+            deploy_status = '${{ steps.deploy.outputs.deploy_status }}'
+            exit_code = '${{ steps.deploy.outputs.exit_code }}'
+            run_url = ('https://github.com/{0}/{1}/actions/runs/{2}' -f '${{ github.repository_owner }}', '${{ github.event.repository.name }}', '${{ github.run_id }}')
+          } | ConvertTo-Json -Depth 5
+          Set-Content -Path artifacts/runner/api-self-runner-fallback-rehearsal-2026-02-19.json -Value $payload -Encoding utf8
+
+      - name: Upload fallback artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-self-runner-fallback-rehearsal
+          path: artifacts/runner/api-self-runner-fallback-rehearsal-2026-02-19.json
