@@ -3,14 +3,15 @@
 on:
   workflow_dispatch:
     inputs:
-      quality_profile:
-        description: pass/fail
+      rehearsal_mode:
+        description: success/block/recover
         required: true
-        default: pass
+        default: success
         type: choice
         options:
-          - pass
-          - fail
+          - success
+          - block
+          - recover
       self_runner_available:
         description: true=self-runner 배포, false=hosted fallback 리허설
         required: true
@@ -81,7 +82,36 @@ jobs:
 
       - name: Performance gate
         run: |
-          python tools/perf/performance_regression_gate.py --results artifacts/performance/messaging-load-test-results.json --thresholds artifacts/performance/messaging-capacity-thresholds.yml
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          import yaml
+
+          data = json.loads(Path("artifacts/performance/messaging-load-test-results.json").read_text(encoding="utf-8"))
+          th = yaml.safe_load(Path("artifacts/performance/messaging-capacity-thresholds.yml").read_text(encoding="utf-8"))["baseline"]
+
+          failed = []
+          for r in data["results"]:
+              if r["throughput_msgs_per_sec"] < th["throughput_msgs_per_sec_min"]:
+                  failed.append((r["profile"], "throughput", r["throughput_msgs_per_sec"]))
+              if r["latency_p95_ms"] > th["latency_p95_ms_max"]:
+                  failed.append((r["profile"], "latency_p95", r["latency_p95_ms"]))
+              if r["latency_p99_ms"] > th["latency_p99_ms_max"]:
+                  failed.append((r["profile"], "latency_p99", r["latency_p99_ms"]))
+              if r["error_rate_pct"] > th["error_rate_pct_max"]:
+                  failed.append((r["profile"], "error_rate", r["error_rate_pct"]))
+              if r["dlq_depth"] > th["dlq_depth_max"]:
+                  failed.append((r["profile"], "dlq_depth", r["dlq_depth"]))
+
+          out = {"status": "failed" if failed else "passed", "failed_checks": failed}
+          Path("artifacts/performance/perf-gate-report.json").write_text(
+              json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          print(json.dumps(out, ensure_ascii=False, indent=2))
+          if failed:
+              sys.exit(1)
+          PY
 
       - name: Observability gate - retryCount
         run: |
@@ -93,10 +123,10 @@ jobs:
 
       - name: Block by quality profile rehearsal
         env:
-          QUALITY_PROFILE: ${{ github.event.inputs.quality_profile }}
+          REHEARSAL_MODE: ${{ github.event.inputs.rehearsal_mode }}
         run: |
-          if [ "$QUALITY_PROFILE" = "fail" ]; then
-            echo "blocked: rehearsal policy fail profile"
+          if [ "$REHEARSAL_MODE" = "block" ]; then
+            echo "blocked: rehearsal policy block mode"
             exit 97
           fi
 
@@ -230,6 +260,23 @@ jobs:
           nexus_password: ${{ secrets.NEXUS_NUGET_PASSWORD }}
           deploy_path: ${{ github.workspace }}\out\api
           runner_mode: hosted-fallback
+          simulate_fail_code: ${{ github.event.inputs.rehearsal_mode == 'recover' && '19' || '0' }}
+        continue-on-error: true
+
+      - name: Recovery deploy after forced failure
+        if: ${{ github.event.inputs.rehearsal_mode == 'recover' && steps.deploy.outcome != 'success' }}
+        id: recovery
+        uses: ./.github/actions/deploy-api-server
+        with:
+          package_id: Contoso.Api
+          package_version: 2.1.0
+          nexus_source_name: nexus-internal
+          nexus_source_url: https://nexus.example.local/repository/nuget-hosted/index.json
+          nexus_username: ${{ secrets.NEXUS_NUGET_USERNAME }}
+          nexus_password: ${{ secrets.NEXUS_NUGET_PASSWORD }}
+          deploy_path: ${{ github.workspace }}\out\api-recovery
+          runner_mode: hosted-fallback
+          simulate_fail_code: '0'
 
       - name: Write fallback rehearsal log
         shell: pwsh
@@ -241,8 +288,11 @@ jobs:
             generated_at = (Get-Date).ToUniversalTime().ToString('o')
             primary_runner = 'windows-self-runner'
             fallback_runner = 'windows-latest'
+            rehearsal_mode = '${{ github.event.inputs.rehearsal_mode }}'
             deploy_status = '${{ steps.deploy.outputs.deploy_status }}'
             exit_code = '${{ steps.deploy.outputs.exit_code }}'
+            recovery_status = '${{ steps.recovery.outputs.deploy_status }}'
+            recovery_exit_code = '${{ steps.recovery.outputs.exit_code }}'
             run_url = ('https://github.com/{0}/{1}/actions/runs/{2}' -f '${{ github.repository_owner }}', '${{ github.event.repository.name }}', '${{ github.run_id }}')
           } | ConvertTo-Json -Depth 5
           Set-Content -Path artifacts/runner/api-self-runner-fallback-rehearsal-2026-02-19.json -Value $payload -Encoding utf8
@@ -252,3 +302,26 @@ jobs:
         with:
           name: api-self-runner-fallback-rehearsal
           path: artifacts/runner/api-self-runner-fallback-rehearsal-2026-02-19.json
+
+      - name: Upload fallback logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-self-runner-fallback-logs
+          path: |
+            artifacts/release-governance-check.json
+            artifacts/performance/perf-gate-report.json
+            artifacts/observability/api-retrycount-validation-2026-02-19.json
+
+      - name: Fail workflow when deploy fails in success mode
+        if: ${{ github.event.inputs.rehearsal_mode == 'success' && steps.deploy.outcome != 'success' }}
+        shell: pwsh
+        run: |
+          Write-Error 'deploy failed in success mode'
+          exit 81
+
+      - name: Fail workflow when recovery fails
+        if: ${{ github.event.inputs.rehearsal_mode == 'recover' && steps.deploy.outcome != 'success' && steps.recovery.outcome != 'success' }}
+        shell: pwsh
+        run: |
+          Write-Error 'recovery failed in recover mode'
+          exit 82
