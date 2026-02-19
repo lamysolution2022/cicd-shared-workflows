@@ -1,15 +1,16 @@
 ﻿{
     "submission_id":  "86bee238725f481b91be2ad7da2d017a",
     "plan_id":  "f2339519-481a-4773-af40-a94265f4cb8b",
-    "generated_at":  "2026-02-19T09:32:17Z",
+    "generated_at":  "2026-02-19T09:41:21Z",
     "method":  "tools/perf/messaging_load_test.py -\u003e k6 before/after schema conversion",
     "assumptions":  {
                         "profiles":  "normal|peak|burst",
                         "dataset":  "script synthetic payload (1KB/2KB)",
-                        "repetitions":  "2 reruns under same profile set",
-                        "before_reference":  "rerun#1 snapshot",
-                        "after_reference":  "rerun#2 snapshot"
+                        "repetitions":  "before snapshot 1 + after rerun snapshot 1",
+                        "before_reference":  "artifacts/performance/.wave2-before-rerun1.json",
+                        "after_reference":  "artifacts/performance/messaging-load-test-results.json"
                     },
+    "decision_formula":  "delta_pct=((after_p95_ms-before_p95_ms)/before_p95_ms)*100; pass if max(delta_pct)\u003c=10",
     "comparison":  [
                        {
                            "profile":  "normal",
@@ -18,7 +19,9 @@
                            "delta_ms":  -0.51,
                            "delta_pct":  -3.55,
                            "threshold_pct":  10,
-                           "within_threshold":  true
+                           "within_threshold":  true,
+                           "before_source_generated_at":  "2026-02-19T09:30:01Z",
+                           "after_source_generated_at":  "2026-02-19T09:31:58Z"
                        },
                        {
                            "profile":  "peak",
@@ -27,16 +30,20 @@
                            "delta_ms":  0.08,
                            "delta_pct":  0.57,
                            "threshold_pct":  10,
-                           "within_threshold":  true
+                           "within_threshold":  true,
+                           "before_source_generated_at":  "2026-02-19T09:30:01Z",
+                           "after_source_generated_at":  "2026-02-19T09:31:58Z"
                        },
                        {
                            "profile":  "burst",
                            "before_p95_ms":  17.98,
                            "after_p95_ms":  16.08,
-                           "delta_ms":  -1.90,
+                           "delta_ms":  -1.9,
                            "delta_pct":  -10.57,
                            "threshold_pct":  10,
-                           "within_threshold":  true
+                           "within_threshold":  true,
+                           "before_source_generated_at":  "2026-02-19T09:30:01Z",
+                           "after_source_generated_at":  "2026-02-19T09:31:58Z"
                        }
                    ],
     "summary":  {

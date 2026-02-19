@@ -1,13 +1,12 @@
-﻿[wave2-performance-rerun] generated=2026-02-19 18:33:36 +09:00
-repo=D:\HBWork\Works\b9cd3a9f-5c93-42af-b44d-8255a413c028
-command_1=python tools/perf/messaging_load_test.py # rerun#1(before)
-command_2=python tools/perf/messaging_load_test.py # rerun#2(after)
-assumptions.profile_set=normal|peak|burst
-assumptions.dataset=synthetic payload (1KB/2KB) from script
-assumptions.repetitions=2
---- comparison ---
-profile=normal, before_p95_ms=14.37, after_p95_ms=13.86, delta_pct=-3.55, within_threshold=True
-profile=peak, before_p95_ms=14.11, after_p95_ms=14.19, delta_pct=0.57, within_threshold=True
-profile=burst, before_p95_ms=17.98, after_p95_ms=16.08, delta_pct=-10.57, within_threshold=True
-summary.max_delta_pct=0.57
-summary.status=pass
+﻿[batch-a] generated=2026-02-19 18:41:04 +09:00
+submission_id=86bee238725f481b91be2ad7da2d017a
+plan_id=f2339519-481a-4773-af40-a94265f4cb8b
+before_source=artifacts/performance/.wave2-before-rerun1.json
+before_sha256=E228E274C95DF3C55166061EA35DA815FE230DCDDDE967EE78EDCDA6DA157780
+after_source=artifacts/performance/messaging-load-test-results.json
+after_sha256=91B43FDAE848AC8F31DD22216457651A7E9E8AB4841B1B9B6B4A39697B9A3CB2
+command_reference=python tools/perf/messaging_load_test.py
+profiles=normal|peak|burst
+dataset=synthetic payload 1KB/2KB from script
+repetitions=before snapshot 1 + after rerun snapshot 1
+note=dirty baseline files were not modified
