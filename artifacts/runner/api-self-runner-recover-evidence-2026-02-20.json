@@ -1,0 +1,11 @@
+﻿{
+  "submission_id": "6b70ea428f9248d28b92d97b77527ead",
+  "plan_id": "fdec7f53-2374-4857-806e-5408fe2548f0",
+  "generated_at": "2026-02-20T01:13:10Z",
+  "mode": "recover",
+  "workflow": ".github/workflows/api-self-runner-deploy-governance.yml",
+  "recover_run_url": "https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22207139912",
+  "recover_job_url": "https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22207139912/job/64233512531",
+  "status": "success",
+  "notes": "forced failure + recovery deploy sequence completed"
+}
