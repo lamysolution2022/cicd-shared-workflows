@@ -17,6 +17,8 @@
 | API 차단 step 근거 | `docs/runner/api-self-runner-validation-report-v1.md` | 차단 step: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176929577/job/64127890587` | 완료 |
 | API recover 실행 근거 | `artifacts/runner/api-self-runner-recover-evidence-2026-02-20.json` | recover URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22207139912` | 완료 |
 | API fallback 증빙 | `artifacts/runner/api-self-runner-fallback-rehearsal-2026-02-19.json` | fallback job: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22176929546/job/64127913936` | 완료 |
+| Self-runner 권한 재인증 로그 | `artifacts/runner/self-runner-reauth-execution-log-2026-02-20.md` | 권한 점검 명령: `gh auth status`, `gh api .../actions/permissions/workflow`, `gh api .../actions/runners` | 완료 |
+| 비밀 회전 이력 증빙 | `artifacts/runner/secret-rotation-evidence-2026-02-20.json` | 메타데이터 조회: `gh api repos/.../actions/secrets`, `gh api orgs/.../actions/secrets` | 완료 |
 | 관측성 보정 리포트 | `docs/wave2-approval/wave2-observability-remediation-report.md` | 성공 URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22175929960` | 완료 |
 | 관측성 차단 근거 | `artifacts/observability/wave2-retrycount-validation-2026-02-19.json` | 차단 URL: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22175929862` | 완료 |
 | 관측성 차단 step | `docs/wave2-approval/wave2-observability-remediation-report.md` | step: `https://github.com/lamysolution2022/cicd-shared-workflows/actions/runs/22175929862/job/64124508309` | 완료 |
@@ -26,7 +28,7 @@
 | 운영 로그(배포/롤백 리허설) | `docs/logs/api-self-runner-deploy-rollback-rehearsal.log` | 로컬 로그 경로 확인 | 완료 |
 
 ## 2) FINAL 근거 누락 점검
-- 점검 항목 수: 15
+- 점검 항목 수: 17
 - 파일 누락: 0건
 - URL/step 누락: 0건
 - 로그 경로 누락: 0건
